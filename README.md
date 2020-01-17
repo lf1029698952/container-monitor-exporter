@@ -24,6 +24,7 @@ https://github.com/kubernetes/kubernetes/issues/60279
 
 通过以上可知，自己手动编写脚本，只抓取需要的网络指标数据，在宿主机上定时执行获取每个应用容器的网络状态并格式化为监控数据格式上传到open-falcon监控平台中，做统一的监控告警。
 以ss --summary为例，显示了各种状态的tcp连接情况，以及udp等连接情况，读取统计到的数据字段：
+```
 Total: 141267 (kernel 7503901)
 TCP:   28090 (estab 80, closed 27999, orphaned 139, synrecv 0, timewait 6586/0), ports 0
 
@@ -34,6 +35,7 @@ UDP	  3         3         0
 TCP	  91        91        0
 INET	  94        94        0
 FRAG	  0         0         0
+```
 
 在上述配置的机器(64C384G运行有300个container的物理机)中执行效率在分钟级。
 
@@ -49,13 +51,14 @@ FRAG	  0         0         0
 使用方案二的优化版本，不使用ss命令来获取每个容器网络空间的网络状态，直接读取每个容器对应pid下的sockstat文件，即/proc/{pid}/net/sockstat文件，效率比ss命令快很多，并且通过docker api与docker交换，获取运行的每个容器对应的pod name和pid信息，效率比执行命令快很多。  
 
 sockstat文件信息：
-
+```
 sockets: used 141118
 TCP: inuse 89 orphan 96 tw 7181 alloc 21341 mem 13896
 UDP: inuse 3 mem 116
 UDPLITE: inuse 0
 RAW: inuse 0
 FRAG: inuse 0 memory 0
+```
 
 在上述配置的机器(64C384G运行有300个container的物理机)中执行效率在毫秒级(300ms左右)。  
 所以该项目使用方案三实现。
