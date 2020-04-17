@@ -59,6 +59,10 @@ UDPLITE: inuse 0
 RAW: inuse 0
 FRAG: inuse 0 memory 0
 ```
+TCP inuse是的值是取自tcp4_hashed+tcp6_hashed，是正在使用的TCP套接字的数量，而不是establish状态的tcp连接，  
+establish状态的tcp连接状态需要从/proc/net/snmp文件中获取，读取CurrEstab字段  
 
-在上述配置的机器(64C384G运行有300个container的物理机)中执行效率在毫秒级(300ms左右)。  
+该方案将网络连接的Establish、InUse、TimeWait、Orphan、Total、UDP六个状态值上报到open-falcon监控平台中，从而获得prometheus监控中没有的容器内部网络连接状态，做数据监控告警。
+
+在上述配置的机器(64C384G运行有300个container的物理机)中执行效率在毫秒级(300ms左右)，内存消耗约40M。  
 所以该项目使用方案三实现。
